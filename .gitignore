@@ -1,0 +1,14 @@
+# Visual Studio Binary Files which can be recompiles
+**/.vs/*
+
+# Binaries Compiled From Unreal Engine
+**/Binaries/*
+
+# Other Files that don't seem to be necessary
+**/Intermediate/*
+**/Saved/*
+
+#The solution can be created from 
+#   the Uproject in Unreal Editor
+
+OreRunner.sln
