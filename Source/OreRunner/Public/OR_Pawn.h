@@ -28,11 +28,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	// Call to make the Pawn Jump Up a finite amount (Impulse)
-	virtual void OR_pawnJumpMov();
+	// Call to point the front of the character based on arcsine of this float value, assumes first call
+	virtual void OR_pawnXPoint(const float);
 
-	// Call to make the Pawn move @param amount
-	virtual void OR_pawnXMov(float);
+	// Call to point the front of the character based on arccosine of this float value, assumes second call
+	virtual void OR_pawnYPoint(const float);
+
+	// Call to add a force to the back of the Character
+	virtual void OR_pawnAccelerate();
 
 public:
 
@@ -45,4 +48,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* OR_pawnCameraComponent;
 
+	//Light Color of Player Eyes | Used for future game mechanics
+	UPROPERTY(EditAnywhere)
+	FColor OR_EyeColor;
+
+private:
+
+	UPROPERTY(EditAnywhere)
+	ULightComponent* pOR_EyeLightComponent;
+	int8 iCosineVal;
 };
