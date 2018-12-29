@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Camera/CameraComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "PhysicsEngine/PhysicsThrusterComponent.h"
 #include "OR_Pawn.generated.h"
 
 UCLASS()
@@ -20,7 +23,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -35,14 +38,17 @@ public:
 	virtual void OR_pawnYPoint(const float);
 
 	// Call to add a force to the back of the Character
-	virtual void OR_pawnAccelerate();
+	virtual void bOR_pawnAccelerateOn();
+
+	// Call to undo force to the back of the Character
+	virtual void bOR_pawnAccelerateOff();
 
 public:
 
 	// Static Mesh Component
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* OR_pawnStaticMeshComp;
-	
+
 
 	// Camera Viewport Component
 	UPROPERTY(EditAnywhere)
@@ -54,7 +60,15 @@ public:
 
 private:
 
+	//Light Component for Player Eyes
 	UPROPERTY(EditAnywhere)
-	ULightComponent* pOR_EyeLightComponent;
-	int8 iCosineVal;
+	UPointLightComponent* pOR_EyeLightComponent;
+
+	int8 pOR_iCosineVal;
+	uint8 pOR_flags;
+	
+private:
+
+	void pOR_addFlag(uint8);
+	void pOR_removeFlag(uint8);
 };

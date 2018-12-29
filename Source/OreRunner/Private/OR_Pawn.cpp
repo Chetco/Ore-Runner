@@ -2,9 +2,11 @@
 
 #include "OR_Pawn.h"
 #include "Components/SceneComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/LightComponent.h"
 #include "Math/UnrealMathUtility.h"
+
+enum AOR_PawnFlags:uint8 {
+	ACCELERATE_PAWN = 1
+};
 
 // Sets default values
 AOR_Pawn::AOR_Pawn()
@@ -43,20 +45,30 @@ AOR_Pawn::AOR_Pawn()
 	//Rotate it to look down on the player with -y axis and +x axis
 	OR_pawnCameraComponent->SetRelativeRotation(FRotator(-90.0f, 0.0f, -90.0f));
 
-	//Attach it to Root Component
-	OR_pawnCameraComponent->SetupAttachment(RootComponent);
+	//Attach it to Static Mesh Component
+	OR_pawnCameraComponent->SetupAttachment(OR_pawnStaticMeshComp);
 
 	//Create Eye Light Component
-	pOR_EyeLightComponent->CreateDefaultSubobject<ULightComponent>(TEXT("EyeLight"));
+	pOR_EyeLightComponent=CreateDefaultSubobject<UPointLightComponent>(TEXT("EyeLight"));
 
 	//Set Relative Location of Eye Light
-	pOR_EyeLightComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	pOR_EyeLightComponent->SetRelativeLocation(FVector(57.0f, -65.0f, 80.0f));
+	
+	//Set Eye Light to a comfortable intensity
+	pOR_EyeLightComponent->SetIntensity(1000.0f);
 
-	//Attach it to Root Component
-	pOR_EyeLightComponent->SetupAttachment(RootComponent);
+	//Set Eye Color and respective color
+	pOR_EyeLightComponent->SetLightColor(FColor(255, 0, 0, 255));
+	OR_EyeColor = FColor(255, 0, 0, 255);
+
+	//Set Attenuation Radius to something small
+	pOR_EyeLightComponent->SetAttenuationRadius(30.0f);
+
+	//Attach it to Static Mesh Component NOT Root Component
+	pOR_EyeLightComponent->SetupAttachment(OR_pawnStaticMeshComp);
 
 	//Default values of integer fields (zeroing out)
-	iCosineVal = 0;
+	pOR_iCosineVal = 0;
 
 }
 
@@ -71,6 +83,11 @@ void AOR_Pawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (pOR_flags & AOR_PawnFlags::ACCELERATE_PAWN) {
+		// Add a force to the Character
+		OR_pawnStaticMeshComp->AddForce(FVector(0.0f, -10 * OR_pawnStaticMeshComp->GetMass(), 0.0f), NAME_None, true);
+	}
+
 }
 
 // Called to bind functionality to input
@@ -83,7 +100,8 @@ void AOR_Pawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	//PlayerInputComponent->BindAxis("Y_Axis_Mouse", this, &AOR_Pawn::OR_pawnYPoint);
 	PlayerInputComponent->BindAxis("X_Axis_Key", this, &AOR_Pawn::OR_pawnXPoint);
 	PlayerInputComponent->BindAxis("Y_Axis_Key", this, &AOR_Pawn::OR_pawnYPoint);
-	PlayerInputComponent->BindAction("Accelerate", EInputEvent::IE_Pressed, this, &AOR_Pawn::OR_pawnAccelerate);
+	PlayerInputComponent->BindAction("Accelerate", EInputEvent::IE_Pressed, this, &AOR_Pawn::bOR_pawnAccelerateOn);
+	PlayerInputComponent->BindAction("Accelerate", EInputEvent::IE_Released, this, &AOR_Pawn::bOR_pawnAccelerateOff);
 
 }
 
@@ -99,10 +117,10 @@ void AOR_Pawn::OR_pawnXPoint(const float fAxisValue) {
 		OR_pawnStaticMeshComp->SetRelativeRotation(FRotator(0.0f, fDegrees, 0.0f), false, nullptr, ETeleportType::None);
 
 		//Set cosine Val (wait is this a bool?)
-		iCosineVal = fAxisValue > 0 ? 1 : -1; // I could have rounded instead for same functionality
+		pOR_iCosineVal = fAxisValue > 0 ? 1 : -1; // I could have rounded instead for same functionality
 	}
 	else {
-		iCosineVal = 0;
+		pOR_iCosineVal = 0;
 	}
 }
 
@@ -117,7 +135,7 @@ void AOR_Pawn::OR_pawnYPoint(const float fAxisValue) {
 		const float fDegrees = FMath::RadiansToDegrees(FMath::FastAsin(fFlipAxisValue) + 1.57079633f);
 
 		//Rotate Root Component Accordingly to Arcsine and if ArcCos is positive
-		if (iCosineVal > 0) {
+		if (pOR_iCosineVal >= 0) {
 			OR_pawnStaticMeshComp->SetRelativeRotation(FRotator(0.0f, fDegrees, 0.0f), false, nullptr, ETeleportType::None);
 		}
 		else if (fAxisValue < 0) {
@@ -127,8 +145,19 @@ void AOR_Pawn::OR_pawnYPoint(const float fAxisValue) {
 }
 
 UFUNCTION(BlueprintCallable)
-void AOR_Pawn::OR_pawnAccelerate() {
-	// Add a force to the Character
-	OR_pawnStaticMeshComp->AddForce(FVector(0.0f, 1.0f, 0.0f), NAME_None, true);
+void AOR_Pawn::bOR_pawnAccelerateOn() {
+	pOR_addFlag(AOR_PawnFlags::ACCELERATE_PAWN);
+	
 }
 
+UFUNCTION(BlueprintCallable)
+void AOR_Pawn::bOR_pawnAccelerateOff() {
+	pOR_removeFlag(AOR_PawnFlags::ACCELERATE_PAWN);
+}
+
+void AOR_Pawn::pOR_addFlag(uint8 flags) {
+	pOR_flags |= flags;
+}
+void AOR_Pawn::pOR_removeFlag(uint8 flags) {
+	pOR_flags = pOR_flags & (~flags);
+}
