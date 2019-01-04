@@ -3,6 +3,9 @@
 #include "OR_Pawn.h"
 #include "Components/SceneComponent.h"
 #include "Math/UnrealMathUtility.h"
+#include "Camera/CameraComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 enum AOR_PawnFlags:uint8 {
 	ACCELERATE_PAWN = 1
@@ -47,6 +50,9 @@ AOR_Pawn::AOR_Pawn()
 
 	//Attach it to Static Mesh Component
 	OR_pawnCameraComponent->SetupAttachment(OR_pawnStaticMeshComp);
+
+	//However we don't want it to rotate with the static Mesh
+	OR_pawnCameraComponent->bAbsoluteRotation = 1;
 
 	//Create Eye Light Component
 	pOR_EyeLightComponent=CreateDefaultSubobject<UPointLightComponent>(TEXT("EyeLight"));
@@ -94,12 +100,6 @@ void AOR_Pawn::Tick(float DeltaTime)
 void AOR_Pawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAxis("X_Axis_Joy", this, &AOR_Pawn::OR_pawnXPoint);
-	PlayerInputComponent->BindAxis("Y_Axis_Joy", this, &AOR_Pawn::OR_pawnYPoint);
-	//PlayerInputComponent->BindAxis("X_Axis_Mouse", this, &AOR_Pawn::OR_pawnXPoint); //TODO event returns position of mouse instead
-	//PlayerInputComponent->BindAxis("Y_Axis_Mouse", this, &AOR_Pawn::OR_pawnYPoint);
-	PlayerInputComponent->BindAxis("X_Axis_Key", this, &AOR_Pawn::OR_pawnXPoint);
-	PlayerInputComponent->BindAxis("Y_Axis_Key", this, &AOR_Pawn::OR_pawnYPoint);
 	PlayerInputComponent->BindAction("Accelerate", EInputEvent::IE_Pressed, this, &AOR_Pawn::bOR_pawnAccelerateOn);
 	PlayerInputComponent->BindAction("Accelerate", EInputEvent::IE_Released, this, &AOR_Pawn::bOR_pawnAccelerateOff);
 
@@ -117,7 +117,7 @@ void AOR_Pawn::OR_pawnXPoint(const float fAxisValue) {
 		OR_pawnStaticMeshComp->SetRelativeRotation(FRotator(0.0f, fDegrees, 0.0f), false, nullptr, ETeleportType::None);
 
 		//Set cosine Val (wait is this a bool?)
-		pOR_iCosineVal = fAxisValue > 0 ? 1 : -1; // I could have rounded instead for same functionality
+		pOR_iCosineVal = fAxisValue > 0 ? 1 : -1; // I could have ceilinged instead for same functionality
 	}
 	else {
 		pOR_iCosineVal = 0;

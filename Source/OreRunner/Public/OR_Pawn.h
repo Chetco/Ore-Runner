@@ -4,10 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "Camera/CameraComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "PhysicsEngine/PhysicsThrusterComponent.h"
 #include "OR_Pawn.generated.h"
 
 UCLASS()
@@ -47,12 +43,12 @@ public:
 
 	// Static Mesh Component
 	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* OR_pawnStaticMeshComp;
+	class UStaticMeshComponent* OR_pawnStaticMeshComp;
 
 
 	// Camera Viewport Component
 	UPROPERTY(EditAnywhere)
-	UCameraComponent* OR_pawnCameraComponent;
+	class UCameraComponent* OR_pawnCameraComponent;
 
 	//Light Color of Player Eyes | Used for future game mechanics
 	UPROPERTY(EditAnywhere)
@@ -62,7 +58,7 @@ private:
 
 	//Light Component for Player Eyes
 	UPROPERTY(EditAnywhere)
-	UPointLightComponent* pOR_EyeLightComponent;
+	class UPointLightComponent* pOR_EyeLightComponent;
 
 	int8 pOR_iCosineVal;
 	uint8 pOR_flags;
